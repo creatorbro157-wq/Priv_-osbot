@@ -10,10 +10,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 # ===================== CONFIG =====================
 BOT_TOKEN = os.getenv("BOT_TOKEN", "9197553923:AAGffy-jwmjG00-qh1GE_Iz74GR_dQWRqtk")
 ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "7970770278"))
-
-# Yahan apna actual HTTP JSON API endpoint daalein (jo number parameter accept karta ho)
-# Example: "https://example.com/api/lookup?number="
-API_BASE_URL = os.getenv("API_BASE_URL", "")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://sher-osint-india-num-info.vercel.app/api")
 # ==================================================
 
 logging.basicConfig(
@@ -92,7 +89,8 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Kripya sahi mobile number bhejein (kam se kam 10 digits).")
         return
 
-    if not API_BASE_URL:
+    base_url = API_BASE_URL.strip()
+    if not base_url:
         await update.message.reply_text(
             "⚠️ `API_BASE_URL` set nahi hai. Kripya Render Environment Variables ya `bot.py` mein apna HTTP JSON API URL set karein.",
             parse_mode="Markdown",
@@ -102,8 +100,8 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status_msg = await update.message.reply_text("🔍 API se data fetch ho raha hai...")
 
     try:
-        sep = "&" if "?" in API_BASE_URL else "?"
-        target_url = f"{API_BASE_URL}{sep}number={cleaned_number}"
+        sep = "&" if "?" in base_url else "?"
+        target_url = f"{base_url}{sep}number={cleaned_number}"
         resp = requests.get(target_url, timeout=15)
         resp.raise_for_status()
 
