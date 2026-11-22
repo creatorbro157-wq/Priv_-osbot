@@ -99,10 +99,16 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     status_msg = await update.message.reply_text("🔍 API se data fetch ho raha hai...")
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": base_url,
+    }
+
     try:
         sep = "&" if "?" in base_url else "?"
         target_url = f"{base_url}{sep}number={cleaned_number}"
-        resp = requests.get(target_url, timeout=15)
+        resp = requests.get(target_url, headers=headers, timeout=15)
         resp.raise_for_status()
 
         try:
@@ -113,6 +119,10 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await status_msg.edit_text(reply_text, parse_mode="Markdown")
 
+    except requests.HTTPError as exc:
+        code = exc.response.status_code if exc.response is not None else "HTTP"
+        logger.error("API HTTP error (%s): %s", code, exc)
+        await status_msg.edit_text(f"❌ API ne `{code}` response diya (access blocked ya endpoint restricted hai).", parse_mode="Markdown")
     except requests.RequestException as exc:
         logger.error("API error: %s", exc)
         await status_msg.edit_text("❌ API se connect karne mein error aaya. Thodi der baad try karein.")
