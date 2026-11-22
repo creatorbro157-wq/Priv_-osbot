@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import threading
@@ -26,6 +27,7 @@ flask_app = Flask(__name__)
 
 
 @flask_app.route("/")
+@flask_app.route("/health")
 def health_check():
     return "Bot is running 24/7!", 200
 
@@ -119,6 +121,9 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     threading.Thread(target=run_flask, daemon=True).start()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
